@@ -10,7 +10,7 @@
             background-color: #f2f2f2;
         }
 
-        input {
+        input, select {
             padding: 10px;
             margin: 10px;
         }
@@ -27,9 +27,19 @@
     <p>Nhập tên của bạn:</p>
     <input type="text" id="name">
 
+    <p>Chọn tuổi của bạn:</p>
+    <select id="age">
+        <option value="">-- Chọn tuổi --</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+    </select>
+
     <br>
 
-    <button onclick="showName()">Hiển thị</button>
+    <button onclick="showInfo()">Hiển thị</button>
 
     <p id="result"></p>
 
@@ -37,9 +47,16 @@
     <a href="index.html">Quay lại trang chính</a>
 
     <script>
-        function showName() {
+        function showInfo() {
             var name = document.getElementById("name").value;
-            document.getElementById("result").innerHTML = "Xin chào " + name + "!";
+            var age = document.getElementById("age").value;
+
+            if(name === "" || age === "") {
+                document.getElementById("result").innerHTML = "Vui lòng nhập đầy đủ!";
+            } else {
+                document.getElementById("result").innerHTML = 
+                    "Xin chào " + name + ", bạn " + age + " tuổi!";
+            }
         }
     </script>
 </body>
