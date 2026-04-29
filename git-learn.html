@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Visual Learning</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --green: #3fb950;
+    --green2: #56d364;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+    --red: #f85149;
+    --yellow: #d29922;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 20px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(63,185,80,.15) 0%, transparent 60%);
+  }
+  .logo-git {
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+  }
+  header p {
+    color: var(--text2);
+    margin-top: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: all .2s;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: var(--green);
+    color: #000;
+    border-color: var(--green);
+    font-weight: 600;
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    display: none;
+    padding: 40px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeIn .4s ease;
+  }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .section-desc {
+    color: var(--text2);
+    margin-bottom: 32px;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+
+  /* ─── CARDS ─── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover {
+    border-color: var(--green);
+    transform: translateY(-2px);
+  }
+  .card-icon { font-size: 2rem; margin-bottom: 10px; }
+  .card h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+  .card p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+
+  /* ─── GIT WORKFLOW DIAGRAM ─── */
+  .workflow {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .wf-title {
+    color: var(--text2);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+  .wf-zones {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 700px;
+  }
+  .wf-zone {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    position: relative;
+  }
+  .wf-zone-label {
+    font-size: 0.75rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .wf-zone-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .wf-zone.remote .wf-zone-name { color: var(--blue); }
+  .wf-zone.local .wf-zone-name { color: var(--green); }
+  .wf-zone.staging .wf-zone-name { color: var(--orange); }
+  .wf-zone.working .wf-zone-name { color: var(--purple); }
+  .wf-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .wf-cmd {
+    font-size: 0.7rem;
+    color: var(--green);
+    font-family: monospace;
+    white-space: nowrap;
+    background: rgba(63,185,80,.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .wf-cmd.rev { color: var(--blue); background: rgba(88,166,255,.1); }
+  .arrow-line {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), var(--green));
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '›';
+    position: absolute;
+    right: -6px;
+    top: -10px;
+    color: var(--green);
+    font-size: 1.2rem;
+  }
+  .arrow-line.rev {
+    background: linear-gradient(90deg, var(--blue), var(--border));
+  }
+  .arrow-line.rev::after {
+    content: '';
+  }
+  .arrow-line.rev::before {
+    content: '‹';
+    position: absolute;
+    left: -6px;
+    top: -10px;
+    color: var(--blue);
+    font-size: 1.2rem;
+  }
+
+  /* ─── COMMAND BUTTONS ─── */
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .cmd-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .cmd-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--cmd-color, var(--green));
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .cmd-btn:hover::before { opacity: 0.08; }
+  .cmd-btn.selected {
+    border-color: var(--cmd-color, var(--green));
+    box-shadow: 0 0 0 3px rgba(var(--cmd-rgb, 63,185,80), .15);
+  }
+  .cmd-btn .cmd-name {
+    font-family: monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cmd-color, var(--green));
+    position: relative;
+  }
+  .cmd-btn .cmd-short {
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-top: 4px;
+    position: relative;
+  }
+
+  /* ─── COMMAND DETAIL ─── */
+  .cmd-detail {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 400px;
+  }
+  .cmd-detail-header {
+    background: var(--bg3);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .cmd-detail-header .cmd-badge {
+    font-family: monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--cmd-color, var(--green));
+  }
+  .cmd-detail-header .cmd-full {
+    color: var(--text2);
+    font-size: 0.9rem;
+  }
+  .cmd-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 700px) { .cmd-body { grid-template-columns: 1fr; } }
+  .cmd-explain {
+    padding: 24px;
+    border-right: 1px solid var(--border);
+  }
+  .cmd-explain h4 { color: var(--text); margin-bottom: 12px; font-size: 1rem; }
+  .cmd-explain p { color: var(--text2); font-size: 0.88rem; line-height: 1.7; margin-bottom: 12px; }
+  .cmd-explain code {
+    display: block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--green2);
+    margin-bottom: 8px;
+    white-space: pre;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px;
+    font-weight: 600;
+  }
+  .tag-green { background: rgba(63,185,80,.15); color: var(--green); }
+  .tag-blue { background: rgba(88,166,255,.15); color: var(--blue); }
+  .tag-orange { background: rgba(255,166,87,.15); color: var(--orange); }
+  .tag-red { background: rgba(248,81,73,.15); color: var(--red); }
+
+  /* ─── CANVAS ANIMATION ─── */
+  .cmd-anim {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .anim-canvas {
+    width: 100%;
+    max-width: 400px;
+    height: 280px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+  .play-btn {
+    margin-top: 12px;
+    padding: 8px 24px;
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: transform .1s;
+  }
+  .play-btn:hover { transform: scale(1.05); }
+  .play-btn:active { transform: scale(0.97); }
+
+  /* ─── BRANCH VIZ ─── */
+  .branch-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .branch-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .branch-action {
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.83rem;
+    transition: all .2s;
+  }
+  .branch-action:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+  }
+  #branchCanvas {
+    width: 100%;
+    height: 300px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  /* ─── STASH VIZ ─── */
+  .stash-demo {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .stash-demo h3 { color: var(--text); margin-bottom: 16px; font-size: 1rem; }
+  .file-zones {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .file-zone {
+    flex: 1;
+    min-width: 160px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    min-height: 130px;
+  }
+  .file-zone-title {
+    font-size: 0.75rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    margin: 3px;
+    cursor: pointer;
+    transition: all .2s;
+    color: var(--text);
+  }
+  .file-chip:hover { border-color: var(--orange); color: var(--orange); }
+  .file-chip.modified { border-color: var(--orange); }
+  .file-chip.staged { border-color: var(--green); color: var(--green); }
+  .stash-controls { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ─── LOG ─── */
+  .git-log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 0.83rem;
+    overflow-x: auto;
+  }
+  .log-entry { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+  .log-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .log-info {}
+  .log-hash { color: var(--yellow); }
+  .log-msg { color: var(--text); margin: 2px 0; }
+  .log-meta { color: var(--text3); font-size: 0.75rem; }
+  .log-branch-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    margin-right: 4px;
+    font-weight: 600;
+  }
+  .log-line {
+    width: 2px;
+    background: var(--border);
+    margin: 0 5px;
+    align-self: stretch;
+  }
+
+  /* ─── TIPS ─── */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .tip-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tip-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--tip-color, var(--green));
+  }
+  .tip-card h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 8px; }
+  .tip-card code {
+    display: block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: var(--green2);
+    margin: 6px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .tip-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg3);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    transition: transform .3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ─── DIFF VIZ ─── */
+  .diff-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: monospace;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+  }
+  .diff-hdr {
+    background: var(--bg3);
+    padding: 8px 14px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  .diff-line {
+    padding: 3px 14px;
+    display: flex;
+    gap: 10px;
+  }
+  .diff-line.add { background: rgba(63,185,80,.1); color: var(--green2); }
+  .diff-line.del { background: rgba(248,81,73,.1); color: var(--red); }
+  .diff-line.ctx { color: var(--text3); }
+  .diff-sym { width: 14px; flex-shrink: 0; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-git">Git Visual Learning</div>
+  <p>Học Git qua hình ảnh động · Hiểu sâu, nhớ lâu</p>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showSection('overview')">🏠 Tổng quan</button>
+  <button class="nav-btn" onclick="showSection('workflow')">🔄 Luồng hoạt động</button>
+  <button class="nav-btn" onclick="showSection('commands')">⚡ Lệnh Git</button>
+  <button class="nav-btn" onclick="showSection('branches')">🌿 Branch & Merge</button>
+  <button class="nav-btn" onclick="showSection('log')">📋 Git Log</button>
+  <button class="nav-btn" onclick="showSection('tips')">💡 Tips & Tricks</button>
+</nav>
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<section id="overview" class="section active">
+  <h2>Git là gì?</h2>
+  <p class="section-desc">Git là hệ thống quản lý phiên bản phân tán (DVCS) — mỗi developer có toàn bộ lịch sử project ngay trên máy mình. Không cần internet để commit, không sợ mất code.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📸</div>
+      <h3>Snapshot, không phải Delta</h3>
+      <p>Git lưu toàn bộ trạng thái file (snapshot) ở mỗi commit, không phải chỉ lưu sự thay đổi. Điều này giúp checkout nhanh và đáng tin cậy.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Phân tán (Distributed)</h3>
+      <p>Mỗi bản clone là một repo đầy đủ với toàn bộ history. Không phụ thuộc server trung tâm để làm việc hàng ngày.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h3>Hash SHA-1</h3>
+      <p>Mỗi commit được định danh bởi hash SHA-1 duy nhất. Nội dung thay đổi → hash thay đổi → dữ liệu không thể bị giả mạo ngầm.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Branching siêu nhanh</h3>
+      <p>Tạo branch trong Git chỉ là tạo một file nhỏ (40 bytes). Không cần copy cả project như SVN cũ.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗂️</div>
+      <h3>3 Khu vực chính</h3>
+      <p><strong>Working Directory</strong> — nơi bạn edit file.<br><strong>Staging Area</strong> — chuẩn bị cho commit.<br><strong>Repository</strong> — lịch sử lưu mãi mãi.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h3>Linked List of Commits</h3>
+      <p>Mỗi commit trỏ về commit cha. Tạo thành một chuỗi lịch sử có thể duyệt ngược về bất kỳ thời điểm nào.</p>
+    </div>
+  </div>
+
+  <div class="workflow">
+    <div class="wf-title">3 trạng thái của file trong Git</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+      <div style="background:var(--bg3);border:1px solid rgba(188,140,255,.4);border-radius:10px;padding:16px;">
+        <div style="color:var(--purple);font-weight:700;margin-bottom:6px;">Modified</div>
+        <div style="font-size:0.83rem;color:var(--text2);">File đã thay đổi trong Working Directory nhưng chưa được staged.</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid rgba(255,166,87,.4);border-radius:10px;padding:16px;">
+        <div style="color:var(--orange);font-weight:700;margin-bottom:6px;">Staged</div>
+        <div style="font-size:0.83rem;color:var(--text2);">File đã được đánh dấu sẽ vào commit tiếp theo (đã git add).</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid rgba(63,185,80,.4);border-radius:10px;padding:16px;">
+        <div style="color:var(--green);font-weight:700;margin-bottom:6px;">Committed</div>
+        <div style="font-size:0.83rem;color:var(--text2);">Dữ liệu đã được lưu an toàn trong database local của Git.</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid rgba(88,166,255,.4);border-radius:10px;padding:16px;">
+        <div style="color:var(--blue);font-weight:700;margin-bottom:6px;">Untracked</div>
+        <div style="font-size:0.83rem;color:var(--text2);">File mới tạo, Git chưa theo dõi. Cần git add để bắt đầu track.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ WORKFLOW ═══════════════════ -->
+<section id="workflow" class="section">
+  <h2>Luồng hoạt động Git</h2>
+  <p class="section-desc">Hiểu luồng dữ liệu di chuyển qua các vùng — đây là nền tảng để hiểu mọi lệnh Git.</p>
+
+  <div class="workflow">
+    <div class="wf-title">Luồng dữ liệu đầy đủ</div>
+    <div class="wf-zones">
+      <div class="wf-zone working">
+        <div class="wf-zone-label">Vùng 1</div>
+        <div class="wf-zone-name">Working Directory</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Edit file ở đây</div>
+      </div>
+      <div class="wf-arrow">
+        <div class="wf-cmd">git add</div>
+        <div class="arrow-line"></div>
+        <div class="wf-cmd rev" style="margin-top:8px;">git restore</div>
+        <div class="arrow-line rev"></div>
+      </div>
+      <div class="wf-zone staging">
+        <div class="wf-zone-label">Vùng 2</div>
+        <div class="wf-zone-name">Staging Area</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">Index / Cache</div>
+      </div>
+      <div class="wf-arrow">
+        <div class="wf-cmd">git commit</div>
+        <div class="arrow-line"></div>
+        <div class="wf-cmd rev" style="margin-top:8px;">git reset HEAD~</div>
+        <div class="arrow-line rev"></div>
+      </div>
+      <div class="wf-zone local">
+        <div class="wf-zone-label">Vùng 3</div>
+        <div class="wf-zone-name">Local Repository</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">.git/objects</div>
+      </div>
+      <div class="wf-arrow">
+        <div class="wf-cmd">git push</div>
+        <div class="arrow-line"></div>
+        <div class="wf-cmd rev" style="margin-top:8px;">git pull/fetch</div>
+        <div class="arrow-line rev"></div>
+      </div>
+      <div class="wf-zone remote">
+        <div class="wf-zone-label">Vùng 4</div>
+        <div class="wf-zone-name">Remote</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">GitHub / GitLab</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- animated workflow canvas -->
+  <div class="branch-container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <h3 style="color:var(--text);font-size:1rem;">Mô phỏng luồng dữ liệu</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="branch-action" onclick="animWorkflow('add')">git add</button>
+        <button class="branch-action" onclick="animWorkflow('commit')">git commit</button>
+        <button class="branch-action" onclick="animWorkflow('push')">git push</button>
+        <button class="branch-action" onclick="animWorkflow('pull')">git pull</button>
+        <button class="branch-action" onclick="resetWorkflow()">Reset</button>
+      </div>
+    </div>
+    <canvas id="workflowCanvas" style="width:100%;height:280px;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:block;"></canvas>
+    <div id="wf-msg" style="margin-top:12px;font-size:0.85rem;color:var(--text2);min-height:24px;text-align:center;"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════ COMMANDS ═══════════════════ -->
+<section id="commands" class="section">
+  <h2>Lệnh Git</h2>
+  <p class="section-desc">Click vào lệnh để xem giải thích và animation minh họa cách nó hoạt động.</p>
+
+  <div class="cmd-grid" id="cmdGrid"></div>
+  <div class="cmd-detail" id="cmdDetail">
+    <div style="display:flex;align-items:center;justify-content:center;height:300px;color:var(--text3);">
+      ← Chọn một lệnh để xem chi tiết
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ BRANCHES ═══════════════════ -->
+<section id="branches" class="section">
+  <h2>Branch & Merge</h2>
+  <p class="section-desc">Branch là siêu năng lực của Git. Tạo, merge, rebase — xem hình ảnh trực quan từng thao tác.</p>
+
+  <div class="branch-container">
+    <div class="branch-controls">
+      <button class="branch-action" onclick="branchAction('new')">+ New Branch</button>
+      <button class="branch-action" onclick="branchAction('commit')">Commit</button>
+      <button class="branch-action" onclick="branchAction('merge')">Merge to main</button>
+      <button class="branch-action" onclick="branchAction('rebase')">Rebase</button>
+      <button class="branch-action" onclick="branchAction('reset')">Reset</button>
+    </div>
+    <canvas id="branchCanvas"></canvas>
+    <div id="branch-msg" style="margin-top:12px;font-size:0.85rem;color:var(--text2);min-height:24px;text-align:center;"></div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🌿</div>
+      <h3>git merge</h3>
+      <p>Gộp lịch sử của 2 branch lại. Tạo thêm 1 merge commit. Lịch sử được giữ nguyên, rõ ràng thời điểm branch nào join vào main.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">✏️</div>
+      <h3>git rebase</h3>
+      <p>Viết lại lịch sử — di chuyển commit sang base mới. Lịch sử linear, sạch đẹp hơn nhưng KHÔNG dùng với branch đã share với người khác.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🍒</div>
+      <h3>git cherry-pick</h3>
+      <p>Lấy đúng 1 commit cụ thể từ branch khác áp lên branch hiện tại. Hữu ích khi chỉ muốn lấy 1 fix mà không merge cả branch.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔀</div>
+      <h3>Fast-forward vs 3-way merge</h3>
+      <p>Nếu main không có commit mới sau khi tạo feature branch → fast-forward (chỉ dời pointer). Ngược lại → 3-way merge tạo merge commit.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ LOG ═══════════════════ -->
+<section id="log" class="section">
+  <h2>Git Log & History</h2>
+  <p class="section-desc">Đọc và hiểu lịch sử commit — kỹ năng thiết yếu để debug, review, và rollback.</p>
+
+  <div class="workflow" style="padding:20px;">
+    <div class="wf-title">Ví dụ git log --oneline --graph --all</div>
+    <div class="git-log" id="gitLogDemo"></div>
+  </div>
+
+  <div class="diff-block">
+    <div class="diff-hdr">$ git diff HEAD~1..HEAD — app.js</div>
+    <div class="diff-line ctx"><span class="diff-sym"></span> function greet(name) {</div>
+    <div class="diff-line del"><span class="diff-sym">-</span>   return 'Hello ' + name;</div>
+    <div class="diff-line add"><span class="diff-sym">+</span>   return `Hello, ${name}!`;</div>
+    <div class="diff-line add"><span class="diff-sym">+</span>   // thêm dấu phẩy và exclamation</div>
+    <div class="diff-line ctx"><span class="diff-sym"></span> }</div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>git log --oneline --graph</h3>
+      <p>Xem lịch sử dạng ASCII graph. Thấy toàn bộ cây branch/merge một cách trực quan ngay trong terminal.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔎</div>
+      <h3>git blame</h3>
+      <p>Xem ai đã viết từng dòng code và commit nào. Không phải để "blame" — mà để hiểu context của code.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>git bisect</h3>
+      <p>Binary search qua lịch sử commit để tìm commit nào gây ra bug. Cực kỳ mạnh khi debug regression.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h3>git reflog</h3>
+      <p>"Bảo hiểm" của Git. Lưu mọi thứ HEAD đã trỏ đến — dù reset --hard hay xóa branch vẫn có thể khôi phục.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ TIPS ═══════════════════ -->
+<section id="tips" class="section">
+  <h2>Tips & Tricks hay nhất</h2>
+  <p class="section-desc">Những lệnh và kỹ thuật Git ít người biết nhưng cực kỳ hữu ích trong thực tế.</p>
+
+  <div class="tips-grid" id="tipsGrid"></div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════ NAV ═══════════════
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'branches') setTimeout(initBranchCanvas, 100);
+  if (id === 'workflow') setTimeout(initWorkflowCanvas, 100);
+  if (id === 'log') renderLog();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════ COMMANDS DATA ═══════════════
+const commands = [
+  {
+    id: 'init', name: 'git init', short: 'Khởi tạo repo', color: '#3fb950', rgb: '63,185,80',
+    desc: 'Tạo một Git repository mới trong thư mục hiện tại. Tạo thư mục .git/ chứa toàn bộ metadata của repo.',
+    syntax: ['git init', 'git init <tên-thư-mục>'],
+    tags: [['Setup', 'green']],
+    animType: 'init'
+  },
+  {
+    id: 'clone', name: 'git clone', short: 'Sao chép repo', color: '#58a6ff', rgb: '88,166,255',
+    desc: 'Copy một repo từ remote về máy local. Tự động cấu hình remote origin và track branch.',
+    syntax: ['git clone <url>', 'git clone <url> <folder>', 'git clone --depth=1 <url>'],
+    tags: [['Remote', 'blue']],
+    animType: 'clone'
+  },
+  {
+    id: 'add', name: 'git add', short: 'Stage changes', color: '#ffa657', rgb: '255,166,87',
+    desc: 'Thêm thay đổi vào Staging Area. Git sẽ chụp snapshot của file lúc này để chuẩn bị commit.',
+    syntax: ['git add <file>', 'git add .', 'git add -p   # interactive patch'],
+    tags: [['Staging', 'orange']],
+    animType: 'add'
+  },
+  {
+    id: 'commit', name: 'git commit', short: 'Lưu snapshot', color: '#3fb950', rgb: '63,185,80',
+    desc: 'Lưu staging area thành một commit mới trong lịch sử. Mỗi commit có hash SHA-1 duy nhất, author, date, và message.',
+    syntax: ['git commit -m "message"', 'git commit -am "message"  # add+commit', 'git commit --amend         # sửa commit cuối'],
+    tags: [['History', 'green'], ['Local', 'green']],
+    animType: 'commit'
+  },
+  {
+    id: 'push', name: 'git push', short: 'Đẩy lên remote', color: '#58a6ff', rgb: '88,166,255',
+    desc: 'Upload commits từ local lên remote repository. Remote phải là ancestor hoặc dùng --force (cẩn thận!).',
+    syntax: ['git push', 'git push origin main', 'git push -u origin feature   # set upstream'],
+    tags: [['Remote', 'blue']],
+    animType: 'push'
+  },
+  {
+    id: 'pull', name: 'git pull', short: 'Kéo từ remote', color: '#58a6ff', rgb: '88,166,255',
+    desc: 'Kéo code mới từ remote về VÀ merge ngay vào branch hiện tại. Thực chất = git fetch + git merge.',
+    syntax: ['git pull', 'git pull --rebase   # dùng rebase thay merge', 'git pull origin main'],
+    tags: [['Remote', 'blue']],
+    animType: 'pull'
+  },
+  {
+    id: 'fetch', name: 'git fetch', short: 'Lấy metadata', color: '#bc8cff', rgb: '188,140,255',
+    desc: 'Download thông tin từ remote nhưng KHÔNG merge. An toàn hơn pull. Dùng khi muốn xem trước trước khi merge.',
+    syntax: ['git fetch', 'git fetch origin', 'git fetch --all'],
+    tags: [['Remote', 'blue'], ['Safe', 'green']],
+    animType: 'fetch'
+  },
+  {
+    id: 'branch', name: 'git branch', short: 'Quản lý branch', color: '#bc8cff', rgb: '188,140,255',
+    desc: 'Tạo, liệt kê, xóa branches. Branch trong Git chỉ là một pointer (file 40 bytes) trỏ đến một commit.',
+    syntax: ['git branch                  # list', 'git branch feature          # tạo mới', 'git branch -d feature       # xóa'],
+    tags: [['Branch', 'purple']],
+    animType: 'branch'
+  },
+  {
+    id: 'checkout', name: 'git checkout', short: 'Chuyển nhánh', color: '#bc8cff', rgb: '188,140,255',
+    desc: 'Chuyển sang branch khác hoặc khôi phục file. Lệnh cũ nhiều chức năng — nên dùng git switch và git restore thay thế.',
+    syntax: ['git checkout main', 'git checkout -b feature     # tạo + chuyển', 'git checkout -- <file>      # restore file'],
+    tags: [['Branch', 'purple']],
+    animType: 'branch'
+  },
+  {
+    id: 'merge', name: 'git merge', short: 'Gộp branch', color: '#3fb950', rgb: '63,185,80',
+    desc: 'Gộp lịch sử branch khác vào branch hiện tại. Tạo merge commit nếu có diverging history.',
+    syntax: ['git merge feature', 'git merge --no-ff feature   # luôn tạo merge commit', 'git merge --squash feature  # gộp tất cả thành 1 commit'],
+    tags: [['Branch', 'purple'], ['History', 'green']],
+    animType: 'merge'
+  },
+  {
+    id: 'rebase', name: 'git rebase', short: 'Viết lại lịch sử', color: '#ffa657', rgb: '255,166,87',
+    desc: 'Di chuyển hoặc kết hợp commits. Tạo lịch sử linear, sạch hơn merge. KHÔNG dùng trên branch đã share!',
+    syntax: ['git rebase main', 'git rebase -i HEAD~3   # interactive rebase', 'git rebase --abort       # hủy'],
+    tags: [['History', 'orange'], ['Rewrite', 'orange']],
+    animType: 'rebase'
+  },
+  {
+    id: 'stash', name: 'git stash', short: 'Cất tạm code', color: '#ffa657', rgb: '255,166,87',
+    desc: 'Lưu tạm thời thay đổi chưa commit để có thể chuyển branch hoặc làm việc khác. Dạng như clipboard cho code.',
+    syntax: ['git stash', 'git stash pop            # lấy ra và xóa', 'git stash list           # danh sách', 'git stash drop stash@{0} # xóa 1 stash'],
+    tags: [['Utility', 'orange']],
+    animType: 'stash'
+  },
+  {
+    id: 'reset', name: 'git reset', short: 'Undo commit', color: '#f85149', rgb: '248,81,73',
+    desc: 'Di chuyển HEAD và branch pointer. 3 mode: --soft (giữ staging), --mixed (giữ working), --hard (xóa hết).',
+    syntax: ['git reset --soft HEAD~1   # undo commit, giữ staged', 'git reset HEAD~1         # undo commit, giữ working', 'git reset --hard HEAD~1  # ⚠️ XÓA LUÔN'],
+    tags: [['Undo', 'red'], ['Dangerous', 'red']],
+    animType: 'reset'
+  },
+  {
+    id: 'revert', name: 'git revert', short: 'Undo an toàn', color: '#3fb950', rgb: '63,185,80',
+    desc: 'Tạo commit mới để đảo ngược commit cũ. An toàn vì không xóa lịch sử. Dùng khi đã push lên remote.',
+    syntax: ['git revert HEAD', 'git revert <hash>'],
+    tags: [['Undo', 'green'], ['Safe', 'green']],
+    animType: 'revert'
+  },
+  {
+    id: 'status', name: 'git status', short: 'Xem trạng thái', color: '#58a6ff', rgb: '88,166,255',
+    desc: 'Xem trạng thái hiện tại: file nào modified, staged, untracked. Lệnh đầu tiên nên chạy mỗi khi không chắc gì đó.',
+    syntax: ['git status', 'git status -s   # short format'],
+    tags: [['Info', 'blue']],
+    animType: 'status'
+  },
+  {
+    id: 'diff', name: 'git diff', short: 'Xem thay đổi', color: '#bc8cff', rgb: '188,140,255',
+    desc: 'So sánh nội dung file. Mặc định so working với staging. Thêm --staged để xem staging vs commit.',
+    syntax: ['git diff               # working vs staging', 'git diff --staged      # staging vs HEAD', 'git diff main..feature # so sánh branch'],
+    tags: [['Info', 'blue']],
+    animType: 'diff'
+  },
+];
+
+// ═══════════════ RENDER COMMANDS ═══════════════
+function renderCommands() {
+  const grid = document.getElementById('cmdGrid');
+  grid.innerHTML = commands.map(c => `
+    <div class="cmd-btn" id="btn-${c.id}" style="--cmd-color:${c.color};--cmd-rgb:${c.rgb}" onclick="selectCmd('${c.id}')">
+      <div class="cmd-name">${c.name.split(' ')[1]}</div>
+      <div class="cmd-short">${c.short}</div>
+    </div>
+  `).join('');
+}
+
+function selectCmd(id) {
+  const cmd = commands.find(c => c.id === id);
+  if (!cmd) return;
+  document.querySelectorAll('.cmd-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('btn-' + id).classList.add('selected');
+
+  const detail = document.getElementById('cmdDetail');
+  detail.style.setProperty('--cmd-color', cmd.color);
+  detail.innerHTML = `
+    <div class="cmd-detail-header">
+      <span class="cmd-badge" style="color:${cmd.color}">${cmd.name}</span>
+      <span class="cmd-full">${cmd.short}</span>
+      <div style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;">
+        ${cmd.tags.map(([t,c]) => `<span class="tag tag-${c}">${t}</span>`).join('')}
+      </div>
+    </div>
+    <div class="cmd-body">
+      <div class="cmd-explain">
+        <h4>Mô tả</h4>
+        <p>${cmd.desc}</p>
+        <h4>Cú pháp</h4>
+        ${cmd.syntax.map(s => `<code>${s}</code>`).join('')}
+      </div>
+      <div class="cmd-anim">
+        <canvas class="anim-canvas" id="animCanvas"></canvas>
+        <button class="play-btn" onclick="playAnim('${id}')">▶ Play Animation</button>
+      </div>
+    </div>
+  `;
+  playAnim(id);
+}
+
+// ═══════════════ ANIMATIONS ═══════════════
+let animTimer = null;
+
+function playAnim(id) {
+  const canvas = document.getElementById('animCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  if (animTimer) clearInterval(animTimer);
+
+  const cmd = commands.find(c => c.id === id);
+  const color = cmd ? cmd.color : '#3fb950';
+
+  // Generic animation dispatcher
+  const animFns = {
+    init: animInit, add: animAdd, commit: animCommit,
+    push: animPush, pull: animPull, fetch: animFetch,
+    branch: animBranch, merge: animMerge, rebase: animRebase,
+    stash: animStash, reset: animReset, revert: animRevert,
+    status: animStatus, clone: animClone, diff: animDiff,
+  };
+  const fn = animFns[cmd.animType] || animGeneric;
+  fn(ctx, W, H, color);
+}
+
+function clearCanvas(ctx, W, H) {
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawText(ctx, text, x, y, color='#8b949e', size=12, align='center') {
+  ctx.fillStyle = color;
+  ctx.font = `${size}px monospace`;
+  ctx.textAlign = align;
+  ctx.fillText(text, x, y);
+}
+
+function drawCircle(ctx, x, y, r, fill, stroke, alpha=1) {
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+  ctx.globalAlpha = 1;
+}
+
+function drawRect(ctx, x, y, w, h, fill, r=6) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color='#3fb950', alpha=1) {
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  const angle = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 10*Math.cos(angle-0.4), y2 - 10*Math.sin(angle-0.4));
+  ctx.lineTo(x2 - 10*Math.cos(angle+0.4), y2 - 10*Math.sin(angle+0.4));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+// INIT animation
+function animInit(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Folder appears
+    const folderAlpha = Math.min(1, t / 20);
+    ctx.globalAlpha = folderAlpha;
+    drawRect(ctx, W/2-50, H/2-60, 100, 80, '#161b22');
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(W/2-50, H/2-60, 100, 80, 6); ctx.stroke();
+    drawText(ctx, '📁 project/', W/2, H/2-25, '#e6edf3', 13);
+    ctx.globalAlpha = 1;
+
+    // .git folder slides in
+    if (t > 20) {
+      const x = W/2 + 70 - Math.max(0, (70 - (t-20)*3));
+      const alpha = Math.min(1, (t-20)/15);
+      ctx.globalAlpha = alpha;
+      drawRect(ctx, x, H/2-40, 80, 50, '#1a2a1a');
+      ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(x, H/2-40, 80, 50, 6); ctx.stroke();
+      drawText(ctx, '📁 .git/', x+40, H/2-10, '#3fb950', 12);
+      ctx.globalAlpha = 1;
+    }
+
+    if (t > 40) {
+      drawText(ctx, 'git init — Tạo repo trống', W/2, H-20, '#56d364', 13);
+    }
+    if (t > 80) { clearInterval(animTimer); t = 0; animTimer = setInterval(() => { clearCanvas(ctx, W, H); t++; if (t > 80) clearInterval(animTimer); }, 50); }
+  }, 50);
+}
+
+// ADD animation
+function animAdd(ctx, W, H) {
+  let t = 0;
+  const zones = [
+    { x: 40, label: 'Working\nDirectory', color: '#bc8cff' },
+    { x: W/2 - 60, label: 'Staging\nArea', color: '#ffa657' },
+    { x: W - 140, label: 'Repository', color: '#3fb950' },
+  ];
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    zones.forEach(z => {
+      drawRect(ctx, z.x, 40, 100, H-80, '#161b22', 8);
+      ctx.strokeStyle = z.color + '40'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(z.x, 40, 100, H-80, 8); ctx.stroke();
+      const lines = z.label.split('\n');
+      lines.forEach((l, i) => drawText(ctx, l, z.x+50, 62 + i*14, z.color, 10));
+    });
+    // file in working dir
+    const fileY = H/2;
+    drawRect(ctx, zones[0].x+20, fileY-14, 60, 28, '#21262d', 4);
+    ctx.strokeStyle = '#bc8cff'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(zones[0].x+20, fileY-14, 60, 28, 4); ctx.stroke();
+    drawText(ctx, 'app.js', zones[0].x+50, fileY+5, '#e6edf3', 11);
+
+    // moving file to staging
+    if (t > 10) {
+      const progress = Math.min(1, (t-10)/30);
+      const eased = 1 - Math.pow(1-progress, 3);
+      const startX = zones[0].x + 20;
+      const endX = zones[1].x + 20;
+      const curX = startX + (endX - startX) * eased;
+      const curY = fileY - Math.sin(progress * Math.PI) * 30 - 14;
+      drawRect(ctx, curX, curY, 60, 28, '#2a2010', 4);
+      ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(curX, curY, 60, 28, 4); ctx.stroke();
+      drawText(ctx, 'app.js', curX+30, curY+19, '#ffa657', 11);
+    }
+    if (t > 45) drawText(ctx, 'git add app.js', W/2, H-15, '#ffa657', 13);
+    if (t > 80) { clearInterval(animTimer); }
+  }, 50);
+}
+
+// COMMIT animation
+function animCommit(ctx, W, H) {
+  let t = 0;
+  let commits = [];
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    const phase = Math.floor(t / 40);
+    if (phase > commits.length - 1 && phase < 3) commits.push({ x: 60 + phase * 100, hash: '#' + Math.random().toString(16).slice(2,8) });
+
+    // draw commit chain
+    commits.forEach((c, i) => {
+      const alpha = Math.min(1, (t - i*40) / 10);
+      drawCircle(ctx, c.x, H/2, 20, '#3fb950' + '30', '#3fb950', alpha);
+      drawText(ctx, c.hash.slice(0,7), c.x, H/2+35, '#56d364', 9, 'center');
+      if (i > 0) drawArrow(ctx, commits[i-1].x+22, H/2, c.x-22, H/2, '#3fb950', alpha);
+    });
+    // HEAD pointer
+    if (commits.length > 0) {
+      const last = commits[commits.length-1];
+      ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(last.x, H/2-24); ctx.lineTo(last.x, H/2-44); ctx.stroke();
+      ctx.setLineDash([]);
+      drawRect(ctx, last.x-22, H/2-64, 44, 18, '#2a1f0a', 4);
+      ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(last.x-22, H/2-64, 44, 18, 4); ctx.stroke();
+      drawText(ctx, 'HEAD', last.x, H/2-52, '#ffa657', 10);
+    }
+    drawText(ctx, 'Mỗi commit là 1 snapshot bất biến', W/2, H-15, '#8b949e', 12);
+    if (t > 130) clearInterval(animTimer);
+  }, 80);
+}
+
+// PUSH animation
+function animPush(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Local
+    drawRect(ctx, 20, H/2-50, 130, 100, '#161b22', 8);
+    ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(20, H/2-50, 130, 100, 8); ctx.stroke();
+    drawText(ctx, 'Local Repo', 85, H/2-30, '#3fb950', 11);
+    [0,1,2].forEach(i => {
+      drawCircle(ctx, 50 + i*30, H/2+10, 8, '#21262d', '#3fb950');
+    });
+    // Remote
+    drawRect(ctx, W-150, H/2-50, 130, 100, '#161b22', 8);
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(W-150, H/2-50, 130, 100, 8); ctx.stroke();
+    drawText(ctx, 'Remote', W-85, H/2-30, '#58a6ff', 11);
+    const remoteCommits = Math.min(t > 60 ? 3 : (t > 40 ? 2 : 1), 3);
+    [0,1,2].slice(0, remoteCommits).forEach(i => {
+      drawCircle(ctx, W-120 + i*28, H/2+10, 8, '#21262d', '#58a6ff');
+    });
+    // Packet flying
+    if (t > 15 && t < 60) {
+      const progress = (t-15) / 45;
+      const px = 160 + (W-310) * progress;
+      drawCircle(ctx, px, H/2, 10, '#58a6ff', '#58a6ff55');
+      drawText(ctx, '📦', px, H/2+4, '#58a6ff', 14);
+    }
+    drawArrow(ctx, 160, H/2, W-160, H/2, '#58a6ff', 0.3);
+    drawText(ctx, 'git push origin main', W/2, H-15, '#58a6ff', 13);
+    if (t > 90) clearInterval(animTimer);
+  }, 50);
+}
+
+// PULL animation
+function animPull(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    drawRect(ctx, 20, H/2-50, 130, 100, '#161b22', 8);
+    ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(20, H/2-50, 130, 100, 8); ctx.stroke();
+    drawText(ctx, 'Local Repo', 85, H/2-30, '#3fb950', 11);
+
+    drawRect(ctx, W-150, H/2-50, 130, 100, '#161b22', 8);
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(W-150, H/2-50, 130, 100, 8); ctx.stroke();
+    drawText(ctx, 'Remote', W-85, H/2-30, '#58a6ff', 11);
+    [0,1,2].forEach(i => drawCircle(ctx, W-120 + i*28, H/2+10, 8, '#21262d', '#58a6ff'));
+
+    // Fetch phase
+    if (t > 5 && t < 40) {
+      const p = (t-5)/35;
+      const px = W-160 - (W-310)*p;
+      drawCircle(ctx, px, H/2-20, 10, '#58a6ff', '#58a6ff55');
+      drawText(ctx, 'fetch', W/2, H/2-50, '#58a6ff', 11);
+    }
+    // Merge phase
+    if (t > 45) {
+      const p = Math.min(1, (t-45)/20);
+      drawText(ctx, '+ merge', W/2, H/2-50, '#3fb950', 11);
+      const mergeCommits = Math.floor(p * 3);
+      [0,1,2].slice(0, mergeCommits).forEach(i => drawCircle(ctx, 50 + i*30, H/2+10, 8, '#21262d', '#3fb950'));
+    }
+    drawArrow(ctx, W-160, H/2, 160, H/2, '#58a6ff', 0.3);
+    drawText(ctx, 'git pull = fetch + merge', W/2, H-15, '#58a6ff', 13);
+    if (t > 80) clearInterval(animTimer);
+  }, 60);
+}
+
+// FETCH animation
+function animFetch(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Local branches
+    drawRect(ctx, 20, 50, 140, 60, '#161b22', 6);
+    ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(20, 50, 140, 60, 6); ctx.stroke();
+    drawText(ctx, 'main', 90, 75, '#3fb950', 11);
+    drawCircle(ctx, 50, 90, 6, '#21262d', '#3fb950');
+
+    drawRect(ctx, 20, 130, 140, 60, '#161b22', 6);
+    ctx.strokeStyle = '#bc8cff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(20, 130, 140, 60, 6); ctx.stroke();
+    drawText(ctx, 'origin/main', 90, 155, '#bc8cff', 11);
+    const oCommits = Math.min(t > 50 ? 3 : 1, 3);
+    [0,1,2].slice(0,oCommits).forEach(i => drawCircle(ctx, 50+i*20, H/2+20, 6, '#21262d', '#bc8cff'));
+
+    // Remote
+    drawRect(ctx, W-160, 80, 140, 80, '#161b22', 6);
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(W-160, 80, 140, 80, 6); ctx.stroke();
+    drawText(ctx, 'Remote', W-90, 110, '#58a6ff', 11);
+    [0,1,2].forEach(i => drawCircle(ctx, W-140+i*22, 140, 7, '#21262d', '#58a6ff'));
+
+    if (t > 10 && t < 55) {
+      const p = (t-10)/45;
+      const px = W-170 - (W-330)*p;
+      const py = 140 - (140-160)*p;
+      drawCircle(ctx, px, py, 8, '#bc8cff55', '#bc8cff');
+    }
+    if (t > 55) drawText(ctx, '✓ origin/main updated (local main unchanged)', W/2, H-15, '#56d364', 11);
+    else drawText(ctx, 'fetch chỉ update origin/main tracking branch', W/2, H-15, '#8b949e', 11);
+    if (t > 90) clearInterval(animTimer);
+  }, 60);
+}
+
+// BRANCH animation
+function animBranch(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    const commits = [{x:80},{x:160},{x:240}];
+    commits.forEach((c,i) => {
+      if (t > i*15) {
+        drawCircle(ctx, c.x, H/2, 15, '#21262d', '#3fb950');
+        if (i > 0) drawArrow(ctx, commits[i-1].x+17, H/2, c.x-17, H/2, '#3fb950');
+      }
+    });
+    // Branch splits
+    if (t > 50) {
+      const branchCommits = [{x:300, y:H/2-60},{x:380, y:H/2-60}];
+      const progress = Math.min(1, (t-50)/30);
+      branchCommits.slice(0, Math.ceil(progress*2)).forEach((c,i) => {
+        drawCircle(ctx, c.x, c.y, 15, '#21262d', '#bc8cff');
+        if (i === 0) drawArrow(ctx, 255, H/2-5, c.x-17, c.y+3, '#bc8cff');
+        else drawArrow(ctx, branchCommits[0].x+17, c.y, c.x-17, c.y, '#bc8cff');
+      });
+      drawText(ctx, 'feature', 340, H/2-85, '#bc8cff', 11);
+    }
+    // Main continues
+    if (t > 55) {
+      drawCircle(ctx, 320, H/2, 15, '#21262d', '#3fb950');
+      drawArrow(ctx, 255, H/2, 303, H/2, '#3fb950');
+      drawText(ctx, 'main', 320, H/2+30, '#3fb950', 11);
+    }
+    drawText(ctx, 'Branch = pointer trỏ đến commit', W/2, H-15, '#8b949e', 12);
+    if (t > 90) clearInterval(animTimer);
+  }, 60);
+}
+
+// MERGE animation
+function animMerge(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Main commits
+    [{x:60},{x:130},{x:200}].forEach((c,i) => {
+      drawCircle(ctx, c.x, H/2+30, 14, '#21262d', '#3fb950');
+      if (i > 0) drawArrow(ctx, [60,130][i-1]+16, H/2+30, c.x-16, H/2+30, '#3fb950');
+    });
+    // Feature branch
+    [{x:200, y:H/2-30},{x:280, y:H/2-50},{x:360, y:H/2-30}].forEach((c,i) => {
+      if (t > i*18) {
+        drawCircle(ctx, c.x, c.y, 14, '#21262d', '#bc8cff');
+        if (i === 0) drawArrow(ctx, 202, H/2+16, c.x-4, c.y+8, '#bc8cff');
+        else drawArrow(ctx, [{x:200,y:H/2-30},{x:280,y:H/2-50}][i-1].x+16, [{x:200,y:H/2-30},{x:280,y:H/2-50}][i-1].y, c.x-16, c.y, '#bc8cff');
+      }
+    });
+    // Merge commit
+    if (t > 65) {
+      drawCircle(ctx, 280, H/2+30, 14, '#21262d', '#3fb950', Math.min(1,(t-65)/15));
+      drawArrow(ctx, 216, H/2+30, 264, H/2+30, '#3fb950', Math.min(1,(t-65)/15));
+      drawArrow(ctx, 362, H/2-22, 282, H/2+16, '#3fb950', Math.min(1,(t-65)/15));
+      if (t > 75) {
+        drawRect(ctx, 250, H/2+44, 60, 16, '#1a2a1a', 4);
+        ctx.strokeStyle = '#56d364'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(250, H/2+44, 60, 16, 4); ctx.stroke();
+        drawText(ctx, 'merge commit', 280, H/2+55, '#56d364', 9);
+      }
+    }
+    drawText(ctx, 'git merge — Gộp lịch sử 2 branch', W/2, H-15, '#8b949e', 12);
+    if (t > 100) clearInterval(animTimer);
+  }, 65);
+}
+
+// REBASE animation
+function animRebase(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    const phase = t < 40 ? 'before' : 'after';
+    if (phase === 'before') {
+      drawText(ctx, 'Trước rebase', W/2, 30, '#8b949e', 12);
+      [{x:60},{x:130},{x:200}].forEach((c,i) => {
+        drawCircle(ctx, c.x, H/2+20, 14, '#21262d', '#3fb950');
+        if (i > 0) drawArrow(ctx, [60,130][i-1]+16, H/2+20, c.x-16, H/2+20, '#3fb950');
+      });
+      [{x:200,y:H/2-30},{x:270,y:H/2-50}].forEach((c,i) => {
+        drawCircle(ctx, c.x, c.y, 14, '#21262d', '#ffa657');
+        if (i === 0) drawArrow(ctx, 202, H/2+6, c.x-4, c.y+8, '#ffa657');
+        else drawArrow(ctx, 200+16, H/2-30, c.x-16, c.y, '#ffa657');
+      });
+      drawText(ctx, 'feature', 235, H/2-70, '#ffa657', 11);
+      drawText(ctx, 'main', 130, H/2+45, '#3fb950', 11);
+    } else {
+      const p = Math.min(1, (t-40)/40);
+      drawText(ctx, 'Sau rebase — lịch sử linear', W/2, 30, '#56d364', 12);
+      [{x:60},{x:130},{x:200},{x:270},{x:340}].forEach((c,i) => {
+        const alpha = i < 3 ? 1 : Math.min(1, (t-40-i*10)/10);
+        drawCircle(ctx, c.x, H/2, 14, '#21262d', i < 3 ? '#3fb950' : '#ffa657', alpha);
+        if (i > 0) drawArrow(ctx, [60,130,200,270][i-1]+16, H/2, c.x-16, H/2, i < 3 ? '#3fb950' : '#ffa657', alpha);
+      });
+      drawText(ctx, 'Clean linear history!', W/2, H/2+50, '#56d364', 13);
+    }
+    drawText(ctx, 'git rebase — Viết lại base của branch', W/2, H-15, '#8b949e', 12);
+    if (t > 95) clearInterval(animTimer);
+  }, 70);
+}
+
+// STASH animation
+function animStash(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Working dir
+    drawRect(ctx, 30, H/2-60, 120, 120, '#161b22', 8);
+    ctx.strokeStyle = '#bc8cff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(30, H/2-60, 120, 120, 8); ctx.stroke();
+    drawText(ctx, 'Working Dir', 90, H/2-40, '#bc8cff', 10);
+
+    // Stash box
+    drawRect(ctx, W/2-60, H/2-40, 120, 80, '#1a1a2a', 8);
+    ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(W/2-60, H/2-40, 120, 80, 8); ctx.stroke();
+    drawText(ctx, '📦 Stash', W/2, H/2-18, '#ffa657', 11);
+    drawText(ctx, 'stash@{0}', W/2, H/2+5, '#8b949e', 9);
+
+    if (t < 40) {
+      // files in working dir
+      ['app.js','style.css'].forEach((f,i) => {
+        drawRect(ctx, 45, H/2-20+i*30, 90, 22, '#21262d', 4);
+        ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(45, H/2-20+i*30, 90, 22, 4); ctx.stroke();
+        drawText(ctx, f, 90, H/2-5+i*30, '#ffa657', 10);
+      });
+    }
+    // Files fly to stash
+    if (t > 15 && t < 50) {
+      ['app.js','style.css'].forEach((f,i) => {
+        const p = Math.min(1, (t-15-i*8)/20);
+        const ex = 1 - Math.pow(1-p, 3);
+        const fx = 135 + (W/2-75-135)*ex;
+        const fy = H/2-20+i*30 - Math.sin(p*Math.PI)*30;
+        ctx.globalAlpha = 1-p*0.3;
+        drawRect(ctx, fx, fy, 70, 20, '#2a1f0a', 4);
+        ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(fx, fy, 70, 20, 4); ctx.stroke();
+        drawText(ctx, f, fx+35, fy+13, '#ffa657', 10);
+        ctx.globalAlpha = 1;
+      });
+    }
+    if (t > 50) {
+      drawText(ctx, '✓', W/2, H/2+25, '#56d364', 14);
+      drawText(ctx, 'Working dir bây giờ sạch!', 90, H/2+50, '#56d364', 10);
+    }
+    drawText(ctx, 'git stash — Cất tạm thay đổi', W/2, H-15, '#8b949e', 12);
+    if (t > 90) clearInterval(animTimer);
+  }, 60);
+}
+
+// RESET animation
+function animReset(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    const commits = [{x:70,h:'a1b2'},{x:160,h:'c3d4'},{x:250,h:'e5f6'}];
+    commits.forEach((c,i) => {
+      const isFading = i === 2 && t > 40;
+      const alpha = isFading ? Math.max(0, 1 - (t-40)/20) : 1;
+      drawCircle(ctx, c.x, H/2, 18, '#21262d', i === 2 ? '#f85149' : '#3fb950', alpha);
+      drawText(ctx, c.h, c.x, H/2+35, '#8b949e', 9);
+      if (i > 0) drawArrow(ctx, commits[i-1].x+20, H/2, c.x-20, H/2, i === 2 ? '#f85149' : '#3fb950', alpha);
+    });
+    // HEAD pointer
+    const headX = t > 50 ? commits[1].x : commits[2].x;
+    ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(headX, H/2-22); ctx.lineTo(headX, H/2-44); ctx.stroke();
+    ctx.setLineDash([]);
+    drawRect(ctx, headX-22, H/2-62, 44, 18, '#2a1f0a', 4);
+    ctx.strokeStyle = '#ffa657'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(headX-22, H/2-62, 44, 18, 4); ctx.stroke();
+    drawText(ctx, 'HEAD', headX, H/2-50, '#ffa657', 10);
+
+    if (t > 55) drawText(ctx, '⚠️ git reset --hard HEAD~1', W/2, H-15, '#f85149', 13);
+    else drawText(ctx, 'Đang reset về commit trước...', W/2, H-15, '#8b949e', 12);
+    if (t > 80) clearInterval(animTimer);
+  }, 60);
+}
+
+// REVERT animation
+function animRevert(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    const commits = [{x:60,h:'a1b2',color:'#3fb950'},{x:140,h:'c3d4',color:'#3fb950'},{x:220,h:'e5f6',color:'#f85149'}];
+    commits.forEach((c,i) => {
+      drawCircle(ctx, c.x, H/2, 16, '#21262d', c.color);
+      drawText(ctx, c.h, c.x, H/2+32, '#8b949e', 9);
+      if (i > 0) drawArrow(ctx, commits[i-1].x+18, H/2, c.x-18, H/2, c.color);
+    });
+    if (t > 30) {
+      const alpha = Math.min(1, (t-30)/20);
+      drawCircle(ctx, 320, H/2, 16, '#21262d', '#3fb950', alpha);
+      ctx.globalAlpha = alpha;
+      drawText(ctx, 'revert', 320, H/2+32, '#56d364', 9);
+      drawArrow(ctx, 238, H/2, 302, H/2, '#3fb950', alpha);
+      // undo arrow
+      ctx.strokeStyle = '#56d364'; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(320, H/2-20); ctx.quadraticCurveTo(270, H/2-60, 220, H/2-20); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      if (t > 55) drawText(ctx, '✓ Tạo commit mới đảo ngược e5f6', W/2, H-15, '#56d364', 12);
+    } else {
+      drawText(ctx, 'git revert — Undo an toàn (giữ history)', W/2, H-15, '#8b949e', 12);
+    }
+    if (t > 90) clearInterval(animTimer);
+  }, 60);
+}
+
+// STATUS animation
+function animStatus(ctx, W, H) {
+  let t = 0;
+  const files = [
+    {name:'modified.js', status:'M', color:'#ffa657'},
+    {name:'new-file.ts', status:'??', color:'#3fb950'},
+    {name:'staged.css', status:'A', color:'#56d364'},
+    {name:'deleted.py', status:'D', color:'#f85149'},
+  ];
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    drawText(ctx, '$ git status', 20, 30, '#56d364', 12, 'left');
+    files.forEach((f, i) => {
+      if (t > i * 12) {
+        const alpha = Math.min(1, (t-i*12)/8);
+        ctx.globalAlpha = alpha;
+        drawRect(ctx, 20, 50 + i*45, W-40, 35, '#161b22', 6);
+        ctx.strokeStyle = f.color + '60'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(20, 50+i*45, W-40, 35, 6); ctx.stroke();
+        drawRect(ctx, 26, 56+i*45, 28, 24, f.color + '25', 4);
+        drawText(ctx, f.status, 40, 72+i*45, f.color, 11);
+        drawText(ctx, f.name, 70, 72+i*45, '#e6edf3', 11, 'left');
+        ctx.globalAlpha = 1;
+      }
+    });
+    if (t > 80) clearInterval(animTimer);
+  }, 60);
+}
+
+// CLONE animation
+function animClone(ctx, W, H) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    // Remote repo
+    drawRect(ctx, W/2-70, 30, 140, 80, '#161b22', 8);
+    ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(W/2-70, 30, 140, 80, 8); ctx.stroke();
+    drawText(ctx, '🌐 GitHub', W/2, 65, '#58a6ff', 12);
+    drawText(ctx, 'repo: my-project', W/2, 85, '#8b949e', 10);
+
+    // Download arrow
+    if (t > 10) {
+      const progress = Math.min(1, (t-10)/40);
+      const ay = 120 + (H-180) * progress;
+      drawArrow(ctx, W/2, 118, W/2, ay, '#58a6ff', 0.8);
+      // Progress bar
+      drawRect(ctx, W/2-60, H/2+30, 120, 10, '#21262d', 4);
+      drawRect(ctx, W/2-60, H/2+30, 120*progress, 10, '#58a6ff', 4);
+    }
+    // Local repo appears
+    if (t > 55) {
+      const alpha = Math.min(1, (t-55)/15);
+      ctx.globalAlpha = alpha;
+      drawRect(ctx, W/2-70, H-110, 140, 80, '#161b22', 8);
+      ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(W/2-70, H-110, 140, 80, 8); ctx.stroke();
+      drawText(ctx, '📁 my-project/', W/2, H-75, '#3fb950', 11);
+      drawText(ctx, '.git/ included', W/2, H-57, '#8b949e', 9);
+      ctx.globalAlpha = 1;
+    }
+    drawText(ctx, 'git clone — Copy đầy đủ repo về local', W/2, H-15, '#8b949e', 12);
+    if (t > 90) clearInterval(animTimer);
+  }, 60);
+}
+
+// DIFF animation
+function animDiff(ctx, W, H) {
+  let t = 0;
+  const lines = [
+    {txt:'  function hello() {', type:'ctx'},
+    {txt:'-   return "Hello";', type:'del'},
+    {txt:'+   return `Hello!`;', type:'add'},
+    {txt:'+   // updated', type:'add'},
+    {txt:'  }', type:'ctx'},
+  ];
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    drawText(ctx, '$ git diff', 20, 28, '#56d364', 12, 'left');
+    lines.forEach((l, i) => {
+      if (t > i*10) {
+        const alpha = Math.min(1, (t-i*10)/8);
+        const y = 50 + i * 36;
+        const color = l.type === 'del' ? '#f85149' : l.type === 'add' ? '#3fb950' : '#6e7681';
+        const bg = l.type === 'del' ? 'rgba(248,81,73,0.1)' : l.type === 'add' ? 'rgba(63,185,80,0.1)' : 'transparent';
+        ctx.globalAlpha = alpha;
+        if (bg !== 'transparent') drawRect(ctx, 10, y-2, W-20, 28, bg, 4);
+        drawText(ctx, l.txt, 20, y+16, color, 11, 'left');
+        ctx.globalAlpha = 1;
+      }
+    });
+    if (t > 80) clearInterval(animTimer);
+  }, 60);
+}
+
+function animGeneric(ctx, W, H, color) {
+  let t = 0;
+  animTimer = setInterval(() => {
+    clearCanvas(ctx, W, H);
+    t++;
+    drawCircle(ctx, W/2, H/2, 40 + Math.sin(t/10)*5, color + '20', color);
+    drawText(ctx, '⚡', W/2, H/2+5, color, 28);
+    if (t > 60) clearInterval(animTimer);
+  }, 50);
+}
+
+// ═══════════════ WORKFLOW CANVAS ═══════════════
+let wfCanvas, wfCtx, wfW, wfH;
+let wfState = { wd: [], staging: [], local: [], remote: [] };
+let wfAnim = null;
+
+function initWorkflowCanvas() {
+  wfCanvas = document.getElementById('workflowCanvas');
+  if (!wfCanvas) return;
+  wfCanvas.width = wfCanvas.offsetWidth * window.devicePixelRatio;
+  wfCanvas.height = wfCanvas.offsetHeight * window.devicePixelRatio;
+  wfCtx = wfCanvas.getContext('2d');
+  wfCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  wfW = wfCanvas.offsetWidth; wfH = wfCanvas.offsetHeight;
+  wfState = { wd: [{name:'app.js'},{name:'index.html'}], staging: [], local: [], remote: [{name:'v1.0'}] };
+  drawWorkflow();
+}
+
+function getZoneX(zone) {
+  const zones = ['wd','staging','local','remote'];
+  const idx = zones.indexOf(zone);
+  return 30 + idx * (wfW/4);
+}
+
+function drawWorkflow() {
+  if (!wfCtx) return;
+  const ctx = wfCtx; const W = wfW; const H = wfH;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
+  const zones = [
+    {key:'wd', label:'Working\nDirectory', color:'#bc8cff'},
+    {key:'staging', label:'Staging\nArea', color:'#ffa657'},
+    {key:'local', label:'Local\nRepo', color:'#3fb950'},
+    {key:'remote', label:'Remote', color:'#58a6ff'},
+  ];
+  const zw = W/4 - 20;
+  zones.forEach((z, i) => {
+    const x = 10 + i * (W/4);
+    drawRect(ctx, x, 20, zw, H-40, '#161b22', 8);
+    ctx.strokeStyle = z.color + '50'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(x, 20, zw, H-40, 8); ctx.stroke();
+    const lines = z.label.split('\n');
+    lines.forEach((l,li) => drawText(ctx, l, x+zw/2, 40+li*14, z.color, 10));
+    // files
+    wfState[z.key].forEach((f, fi) => {
+      const fy = 75 + fi * 38;
+      drawRect(ctx, x+10, fy, zw-20, 28, '#21262d', 5);
+      ctx.strokeStyle = z.color + '80'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(x+10, fy, zw-20, 28, 5); ctx.stroke();
+      drawText(ctx, f.name, x+zw/2, fy+18, z.color, 10);
+    });
+  });
+}
+
+function animWorkflow(action) {
+  const msg = document.getElementById('wf-msg');
+  const msgs = {
+    add: 'git add — Di chuyển file từ Working Directory → Staging Area',
+    commit: 'git commit — Lưu snapshot từ Staging Area → Local Repo',
+    push: 'git push — Upload commits từ Local Repo → Remote',
+    pull: 'git pull — Kéo code từ Remote → Local Repo + Working Directory',
+  };
+  msg.textContent = msgs[action] || '';
+
+  if (action === 'add' && wfState.wd.length > 0) {
+    const file = wfState.wd.shift();
+    wfState.staging.push(file);
+    toast('✓ Staged: ' + file.name);
+  } else if (action === 'commit' && wfState.staging.length > 0) {
+    const files = [...wfState.staging];
+    wfState.staging = [];
+    wfState.local.push({name:'commit #' + Math.random().toString(16).slice(2,6)});
+    toast('✓ Committed ' + files.length + ' file(s)');
+  } else if (action === 'push' && wfState.local.length > 0) {
+    const c = wfState.local[wfState.local.length-1];
+    wfState.remote.push({name:c.name});
+    toast('✓ Pushed to remote');
+  } else if (action === 'pull') {
+    if (wfState.remote.length > 0) {
+      const c = wfState.remote[wfState.remote.length-1];
+      wfState.local.push({name:'pulled: '+c.name});
+      wfState.wd.push({name:'updated file'});
+      toast('✓ Pulled from remote');
+    }
+  }
+  drawWorkflow();
+}
+
+function resetWorkflow() {
+  wfState = { wd: [{name:'app.js'},{name:'index.html'}], staging: [], local: [], remote: [{name:'v1.0'}] };
+  document.getElementById('wf-msg').textContent = '';
+  drawWorkflow();
+  toast('Reset workflow');
+}
+
+// ═══════════════ BRANCH CANVAS ═══════════════
+let bCanvas, bCtx, bW, bH;
+let branches = {
+  main: [{x:60, id:1},{x:130, id:2},{x:200, id:3}],
+  feature: null,
+};
+let bMsg = '';
+
+function initBranchCanvas() {
+  bCanvas = document.getElementById('branchCanvas');
+  if (!bCanvas) return;
+  bCanvas.width = bCanvas.offsetWidth * window.devicePixelRatio;
+  bCanvas.height = bCanvas.offsetHeight * window.devicePixelRatio;
+  bCtx = bCanvas.getContext('2d');
+  bCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  bW = bCanvas.offsetWidth; bH = bCanvas.offsetHeight;
+  branches = { main: [{x:60, id:1},{x:140, id:2},{x:220, id:3}], feature: null, merged: false };
+  drawBranches();
+}
+
+function drawBranches() {
+  if (!bCtx) return;
+  const ctx = bCtx; const W = bW; const H = bH;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
+  const mainY = branches.feature ? H*0.65 : H/2;
+  const featY = H*0.3;
+
+  // draw main
+  branches.main.forEach((c,i) => {
+    drawCircle(ctx, c.x, mainY, 16, '#21262d', '#3fb950');
+    drawText(ctx, '#'+c.id, c.x, mainY+30, '#8b949e', 9);
+    if (i > 0) drawArrow(ctx, branches.main[i-1].x+18, mainY, c.x-18, mainY, '#3fb950');
+  });
+  drawRect(ctx, branches.main[branches.main.length-1].x-20, mainY-38, 40, 18, '#1a2a1a', 4);
+  ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(branches.main[branches.main.length-1].x-20, mainY-38, 40, 18, 4); ctx.stroke();
+  drawText(ctx, 'main', branches.main[branches.main.length-1].x, mainY-26, '#3fb950', 10);
+
+  // draw feature
+  if (branches.feature && branches.feature.length > 0) {
+    const baseCommit = branches.main.find(c => c.id === branches.feature[0].base) || branches.main[branches.main.length-2];
+    branches.feature.forEach((c,i) => {
+      drawCircle(ctx, c.x, featY, 16, '#21262d', '#bc8cff');
+      drawText(ctx, '#'+c.id, c.x, featY+30, '#8b949e', 9);
+      if (i === 0) {
+        drawArrow(ctx, baseCommit.x+8, mainY-18, c.x-8, featY+14, '#bc8cff');
+      } else {
+        drawArrow(ctx, branches.feature[i-1].x+18, featY, c.x-18, featY, '#bc8cff');
+      }
+    });
+    if (!branches.merged) {
+      drawRect(ctx, branches.feature[branches.feature.length-1].x-30, featY-38, 60, 18, '#1a1a2a', 4);
+      ctx.strokeStyle = '#bc8cff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(branches.feature[branches.feature.length-1].x-30, featY-38, 60, 18, 4); ctx.stroke();
+      drawText(ctx, 'feature', branches.feature[branches.feature.length-1].x, featY-26, '#bc8cff', 10);
+    }
+  }
+
+  // merge line
+  if (branches.merged && branches.feature) {
+    const lastFeat = branches.feature[branches.feature.length-1];
+    const lastMain = branches.main[branches.main.length-1];
+    drawArrow(ctx, lastFeat.x+8, featY+14, lastMain.x-8, mainY-18, '#56d364');
+    drawText(ctx, 'MERGED', lastMain.x, mainY-46, '#56d364', 10);
+  }
+
+  document.getElementById('branch-msg').textContent = bMsg;
+}
+
+let commitId = 10;
+function branchAction(action) {
+  if (!bCanvas) initBranchCanvas();
+  const mainY = H/2;
+  if (action === 'new') {
+    if (branches.feature) { bMsg = 'Feature branch đã tồn tại'; drawBranches(); return; }
+    const base = branches.main[branches.main.length-1];
+    branches.feature = [{x: base.x + 80, id: ++commitId, base: base.id}];
+    branches.merged = false;
+    bMsg = 'git checkout -b feature — Tạo branch mới từ commit #' + base.id;
+  } else if (action === 'commit') {
+    const last = branches.feature ? branches.feature[branches.feature.length-1] : branches.main[branches.main.length-1];
+    const newX = last.x + 80;
+    if (branches.feature) branches.feature.push({x: newX, id: ++commitId});
+    else branches.main.push({x: newX, id: ++commitId});
+    bMsg = 'git commit — Thêm commit #' + commitId;
+  } else if (action === 'merge') {
+    if (!branches.feature) { bMsg = 'Chưa có feature branch'; drawBranches(); return; }
+    const lastFeat = branches.feature[branches.feature.length-1];
+    branches.main.push({x: lastFeat.x + 80, id: ++commitId});
+    branches.merged = true;
+    bMsg = 'git merge feature — Merge vào main (merge commit #' + commitId + ')';
+  } else if (action === 'rebase') {
+    if (!branches.feature) { bMsg = 'Chưa có feature branch'; drawBranches(); return; }
+    const lastMain = branches.main[branches.main.length-1];
+    branches.feature = branches.feature.map((c, i) => ({...c, x: lastMain.x + 80 + i*80}));
+    bMsg = 'git rebase main — Di chuyển feature commits lên đầu main';
+  } else if (action === 'reset') {
+    branches = { main: [{x:60, id:1},{x:140, id:2},{x:220, id:3}], feature: null, merged: false };
+    commitId = 10;
+    bMsg = 'Reset về trạng thái ban đầu';
+  }
+  drawBranches();
+}
+
+// ═══════════════ GIT LOG ═══════════════
+function renderLog() {
+  const logData = [
+    {hash:'a3f8c92', msg:'feat: add user authentication', author:'lyky', date:'2h ago', branches:['HEAD','main'], color:'#3fb950'},
+    {hash:'b7d2e14', msg:'fix: resolve login redirect bug', author:'lyky', date:'5h ago', branches:[], color:'#3fb950'},
+    {hash:'c1a5f80', msg:'Merge branch "feature/ui-update"', author:'lyky', date:'1d ago', branches:[], color:'#bc8cff'},
+    {hash:'d9c3b71', msg:'feat: redesign dashboard layout', author:'lyky', date:'1d ago', branches:['feature/ui-update'], color:'#bc8cff'},
+    {hash:'e2d7a43', msg:'chore: update dependencies', author:'lyky', date:'3d ago', branches:[], color:'#ffa657'},
+    {hash:'f8b1c96', msg:'initial commit', author:'lyky', date:'1w ago', branches:['origin/main'], color:'#58a6ff'},
+  ];
+
+  const el = document.getElementById('gitLogDemo');
+  if (!el) return;
+  el.innerHTML = logData.map((c, i) => `
+    <div class="log-entry">
+      <div>
+        <div class="log-dot" style="background:${c.color}"></div>
+        ${i < logData.length-1 ? '<div class="log-line"></div>' : ''}
+      </div>
+      <div class="log-info">
+        <div>
+          <span class="log-hash">${c.hash}</span>
+          ${c.branches.map(b => {
+            const col = b.includes('HEAD') ? '#ffa657' : b.includes('origin') ? '#58a6ff' : b.includes('feature') ? '#bc8cff' : '#3fb950';
+            return `<span class="log-branch-tag" style="background:${col}20;color:${col}">${b}</span>`;
+          }).join('')}
+        </div>
+        <div class="log-msg">${c.msg}</div>
+        <div class="log-meta">${c.author} · ${c.date}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════ TIPS ═══════════════
+const tips = [
+  {
+    title:'git log đẹp', color:'#3fb950',
+    code:'git log --oneline --graph --all --decorate',
+    desc:'Hiển thị lịch sử dạng ASCII tree với đầy đủ branch info. Thêm alias này vào ~/.gitconfig!'
+  },
+  {
+    title:'Undo commit cuối (giữ code)', color:'#ffa657',
+    code:'git reset --soft HEAD~1',
+    desc:'Undo commit nhưng giữ nguyên code trong staging. Hữu ích khi commit nhầm message.'
+  },
+  {
+    title:'Xem ai viết dòng này', color:'#bc8cff',
+    code:'git blame -L 10,20 src/app.js',
+    desc:'Xem author và commit của từng dòng. -L để chỉ xem range dòng 10-20.'
+  },
+  {
+    title:'Tìm commit gây bug', color:'#f85149',
+    code:'git bisect start\ngit bisect bad\ngit bisect good v1.0',
+    desc:'Binary search qua lịch sử. Git tự checkout giữa good/bad, bạn test rồi mark good/bad tiếp.'
+  },
+  {
+    title:'Lấy 1 file từ branch khác', color:'#58a6ff',
+    code:'git checkout feature -- src/utils.js',
+    desc:'Copy đúng 1 file từ branch feature về branch hiện tại mà không merge cả branch.'
+  },
+  {
+    title:'Interactive staging', color:'#ffa657',
+    code:'git add -p',
+    desc:'Stage từng "hunk" (phần thay đổi) riêng lẻ. Rất hữu ích khi 1 file có nhiều thay đổi không liên quan.'
+  },
+  {
+    title:'Khôi phục file đã xóa nhầm', color:'#3fb950',
+    code:'git reflog\ngit checkout <hash> -- <file>',
+    desc:'reflog lưu mọi thứ. Tìm hash trước khi xóa rồi checkout lại file đó.'
+  },
+  {
+    title:'Stash có tên', color:'#ffa657',
+    code:'git stash save "WIP: login form fix"\ngit stash list',
+    desc:'Đặt tên cho stash để dễ nhớ sau này, đặc biệt khi có nhiều stash.'
+  },
+  {
+    title:'Sửa commit cuối', color:'#bc8cff',
+    code:'git commit --amend --no-edit',
+    desc:'Thêm file vào commit cuối mà không đổi message. KHÔNG dùng sau khi đã push!'
+  },
+  {
+    title:'Xem nội dung commit cũ', color:'#58a6ff',
+    code:'git show HEAD~3:src/app.js',
+    desc:'Xem nội dung file ở commit cách đây 3 commit mà không cần checkout.'
+  },
+  {
+    title:'Git alias tiết kiệm thời gian', color:'#3fb950',
+    code:'git config --global alias.st status\ngit config --global alias.co checkout\ngit config --global alias.br branch',
+    desc:'Tạo shortcut cho các lệnh dài. Sau đó dùng git st, git co, git br.'
+  },
+  {
+    title:'Cherry-pick commit cụ thể', color:'#f85149',
+    code:'git cherry-pick abc1234',
+    desc:'Lấy đúng 1 commit từ branch khác. Hữu ích khi hotfix cần apply lên nhiều branches.'
+  },
+];
+
+function renderTips() {
+  const grid = document.getElementById('tipsGrid');
+  if (!grid) return;
+  grid.innerHTML = tips.map(t => `
+    <div class="tip-card" style="--tip-color:${t.color}">
+      <h3>${t.title}</h3>
+      <code>${t.escHTML ? t.escHTML : t.code.split('\n').join('\n')}</code>
+      <p>${t.desc}</p>
+    </div>
+  `).join('');
+}
+
+// ═══════════════ INIT ═══════════════
+renderCommands();
+renderTips();
+
+// Select first command by default
+setTimeout(() => selectCmd('init'), 100);
+</script>
+</body>
+</html>
